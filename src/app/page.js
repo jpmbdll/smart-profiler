@@ -1,95 +1,111 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
 
-export default function Home() {
+import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import { getInsuranceRecommendation } from "./gemini-service";
+
+const InsuranceForm = () => {
+  const [clientDetails, setClientDetails] = useState({
+    age: "",
+    income: "",
+    healthConditions: "",
+    familySize: "",
+  });
+  const [recommendation, setRecommendation] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setClientDetails({ ...clientDetails, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setRecommendation("");
+    try {
+      const result = await getInsuranceRecommendation(clientDetails);
+      setRecommendation(result);
+    } catch (err) {
+      setRecommendation(
+        "An error occurred while generating the recommendation."
+      );
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
+    <div style={{ padding: "30px", margin: "auto" }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "15px",
+          backgroundColor: "#f5f5f5",
+          padding: "20px",
+          borderRadius: "8px",
+        }}
+      >
+        <input
+          name="age"
+          placeholder="Age"
+          onChange={handleChange}
+          style={{ padding: "12px", fontSize: "16px", borderRadius: "5px" }}
         />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.js</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+        <input
+          name="income"
+          placeholder="Income"
+          onChange={handleChange}
+          style={{ padding: "12px", fontSize: "16px", borderRadius: "5px" }}
+        />
+        <input
+          name="healthConditions"
+          placeholder="Health Conditions"
+          onChange={handleChange}
+          style={{ padding: "12px", fontSize: "16px", borderRadius: "5px" }}
+        />
+        <input
+          name="familySize"
+          placeholder="Family Size"
+          onChange={handleChange}
+          style={{ padding: "12px", fontSize: "16px", borderRadius: "5px" }}
+        />
+        <button
+          type="submit"
+          disabled={isLoading}
+          style={{
+            padding: "12px",
+            fontSize: "16px",
+            backgroundColor: isLoading ? "#aaa" : "#3498db",
+            color: "#fff",
+            border: "none",
+            borderRadius: "5px",
+            cursor: isLoading ? "not-allowed" : "pointer",
+          }}
+        >
+          {isLoading ? "Loading..." : "Get Recommendation"}
+        </button>
+      </form>
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+      {recommendation && !isLoading && (
+        <div
+          style={{
+            marginTop: "30px",
+            padding: "20px",
+            backgroundColor: "#fff",
+            border: "1px solid #ddd",
+            borderRadius: "8px",
+            lineHeight: 1.6,
+          }}
+        >
+          <h3 style={{ marginTop: 0 }}>Recommended Plan:</h3>
+          <ReactMarkdown>{recommendation}</ReactMarkdown>
         </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
     </div>
   );
-}
+};
+
+export default InsuranceForm;
